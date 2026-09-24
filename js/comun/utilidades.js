@@ -151,6 +151,67 @@ const Utilidades = (() => {
         return svg;
     }
 
+    /* ── Gestión Segura de Tokens y Sesión ── */
+    const CLAVE_TOKEN_STORAGE = 'galipelis_auth_token';
+
+    /**
+     * Obtiene el token de sesión guardado
+     * @returns {string}
+     */
+    function obtenerToken() {
+        return localStorage.getItem(CLAVE_TOKEN_STORAGE) || '';
+    }
+
+    /**
+     * Guarda el token de sesión
+     * @param {string} token 
+     */
+    function guardarToken(token) {
+        if (token && typeof token === 'string') {
+            localStorage.setItem(CLAVE_TOKEN_STORAGE, token.trim());
+        }
+    }
+
+    /**
+     * Elimina el token de sesión almacenado
+     */
+    function eliminarToken() {
+        localStorage.removeItem(CLAVE_TOKEN_STORAGE);
+    }
+
+    /**
+     * Adjunta el token de sesión como parámetro a una URL (ideal para streams, SSE o multimedia)
+     * @param {string} url 
+     * @returns {string}
+     */
+    function adjuntarTokenAUrl(url) {
+        const token = obtenerToken();
+        if (!token || !url) return url;
+        const separador = url.includes('?') ? '&' : '?';
+        return `${url}${separador}token=${encodeURIComponent(token)}`;
+    }
+
+    /**
+     * Realiza una petición HTTP adjuntando automáticamente la cabecera Authorization: Bearer <token>
+     * @param {string} url 
+     * @param {RequestInit} [opciones={}] 
+     * @returns {Promise<Response>}
+     */
+    async function peticionAutenticada(url, opciones = {}) {
+        const token = obtenerToken();
+        const cabeceras = new Headers(opciones.headers || {});
+        if (token) {
+            cabeceras.set('Authorization', `Bearer ${token}`);
+        }
+        const opcionesFinales = {
+            ...opciones,
+            headers: cabeceras
+        };
+
+        const respuesta = await fetch(url, opcionesFinales);
+        return respuesta;
+    }
+
     return {
         formatearTiempo,
         extraerAno,
@@ -160,6 +221,11 @@ const Utilidades = (() => {
         obtenerUrlImagenSegura,
         obtenerImagenRespaldo,
         vaciarElemento,
-        crearIconoSVG
+        crearIconoSVG,
+        obtenerToken,
+        guardarToken,
+        eliminarToken,
+        adjuntarTokenAUrl,
+        peticionAutenticada
     };
 })();

@@ -56,19 +56,43 @@ document.addEventListener('DOMContentLoaded', () => {
     let timelineChart = null;
     let chartZoomLevel = 1.0;
 
-    // Session Check
-    function checkSession() {
-        const session = localStorage.getItem('gali_admin_user');
-        if (session) {
-            currentAdminName.textContent = session;
-            adminLoginModal.classList.add('hidden');
-            adminDashboard.classList.remove('hidden');
-            loadStats();
-            loadUsers();
-        } else {
-            adminLoginModal.classList.remove('hidden');
-            adminDashboard.classList.add('hidden');
+    // Validación estricta de sesión de administrador en el backend
+    async function checkSession() {
+        const token = Utilidades.obtenerToken();
+        if (!token) {
+            bloquearAccesoAdmin();
+            return;
         }
+
+        try {
+            const res = await Utilidades.peticionAutenticada(`${BASE_PROXY}/api/auth/me`);
+            if (res.ok) {
+                const data = await res.json();
+                if (data.authenticated && data.is_admin) {
+                    currentAdminName.textContent = data.username;
+                    adminLoginModal.classList.add('hidden');
+                    adminDashboard.classList.remove('hidden');
+                    loadStats();
+                    loadUsers();
+                    return;
+                } else {
+                    showError('Acceso denegado: Tu cuenta no dispone de permisos de administrador.');
+                }
+            } else {
+                showError('Sesión expirada o no autorizada.');
+            }
+        } catch (err) {
+            showError('Error al contactar con el servidor para verificar permisos.');
+        }
+
+        bloquearAccesoAdmin();
+    }
+
+    function bloquearAccesoAdmin() {
+        Utilidades.eliminarToken();
+        adminLoginModal.classList.remove('hidden');
+        adminDashboard.classList.add('hidden');
+        currentAdminName.textContent = '';
     }
 
     adminLoginForm.addEventListener('submit', async (e) => {
@@ -86,12 +110,14 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             const data = await res.json();
-            if (data.success) {
+            if (res.ok && data.success && data.token) {
                 if (!data.is_admin) {
-                    showError('Solo usuarios administradores pueden acceder a este panel.');
+                    showError('Acceso denegado: Solo usuarios con rol administrador pueden ingresar.');
                     return;
                 }
-                localStorage.setItem('gali_admin_user', data.username);
+                Utilidades.guardarToken(data.token);
+                adminUser.value = '';
+                adminPass.value = '';
                 checkSession();
             } else {
                 showError(data.error || 'Credenciales incorrectas.');
@@ -106,9 +132,15 @@ document.addEventListener('DOMContentLoaded', () => {
         loginError.classList.remove('hidden');
     }
 
-    adminLogoutBtn.addEventListener('click', () => {
-        localStorage.removeItem('gali_admin_user');
-        checkSession();
+    adminLogoutBtn.addEventListener('click', async () => {
+        try {
+            await Utilidades.peticionAutenticada(`${BASE_PROXY}/api/logout`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+        } catch (e) {}
+        Utilidades.eliminarToken();
+        bloquearAccesoAdmin();
     });
 
     // Tab Navigation
@@ -148,7 +180,12 @@ document.addEventListener('DOMContentLoaded', () => {
     // User Management & Password Editor
     async function loadUsers() {
         try {
-            const res = await fetch(`${BASE_PROXY}/api/users`);
+            const res = await Utilidades.peticionAutenticada(`${BASE_PROXY}/api/users`);
+            if (res.status === 401 || res.status === 403) {
+                bloquearAccesoAdmin();
+                return;
+            }
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
             const users = await res.json();
             renderUsersTable(users);
         } catch (err) {
@@ -163,7 +200,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        const currentAdmin = localStorage.getItem('gali_admin_user');
+        const currentAdmin = currentAdminName.textContent.trim();
 
         users.forEach(u => {
             const tr = document.createElement('tr');
@@ -226,11 +263,15 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         try {
-            const res = await fetch(`${BASE_PROXY}/api/users/password`, {
+            const res = await Utilidades.peticionAutenticada(`${BASE_PROXY}/api/users/password`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ username, password: newPassword })
             });
+            if (res.status === 401 || res.status === 403) {
+                bloquearAccesoAdmin();
+                return;
+            }
             const data = await res.json();
             if (data.success) {
                 alert(`Contraseña de ${username} actualizada correctamente.`);
@@ -247,7 +288,11 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!confirm(`¿Estás seguro de que deseas eliminar al usuario "${username}"?`)) return;
 
         try {
-            const res = await fetch(`${BASE_PROXY}/api/users/delete?username=${encodeURIComponent(username)}`, { method: 'DELETE' });
+            const res = await Utilidades.peticionAutenticada(`${BASE_PROXY}/api/users/delete?username=${encodeURIComponent(username)}`, { method: 'DELETE' });
+            if (res.status === 401 || res.status === 403) {
+                bloquearAccesoAdmin();
+                return;
+            }
             const data = await res.json();
             if (data.success) {
                 loadUsers();
@@ -268,11 +313,15 @@ document.addEventListener('DOMContentLoaded', () => {
         const isAdmin = newIsAdmin.checked;
 
         try {
-            const res = await fetch(`${BASE_PROXY}/api/users`, {
+            const res = await Utilidades.peticionAutenticada(`${BASE_PROXY}/api/users`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ username, password, is_admin: isAdmin })
             });
+            if (res.status === 401 || res.status === 403) {
+                bloquearAccesoAdmin();
+                return;
+            }
 
             const data = await res.json();
             if (data.success) {
@@ -298,7 +347,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // Inspect User Detail (Favorites + Viewing History)
     async function inspectUserDetail(username) {
         try {
-            const res = await fetch(`${BASE_PROXY}/api/admin/user_detail?username=${encodeURIComponent(username)}`);
+            const res = await Utilidades.peticionAutenticada(`${BASE_PROXY}/api/admin/user_detail?username=${encodeURIComponent(username)}`);
+            if (res.status === 401 || res.status === 403) {
+                bloquearAccesoAdmin();
+                return;
+            }
             const data = await res.json();
             if (data.error) {
                 alert(data.error);
@@ -361,13 +414,17 @@ document.addEventListener('DOMContentLoaded', () => {
     async function loadStats() {
         try {
             // Load stats history
-            const resStats = await fetch(`${BASE_PROXY}/api/stats`);
+            const resStats = await Utilidades.peticionAutenticada(`${BASE_PROXY}/api/stats`);
+            if (resStats.status === 401 || resStats.status === 403) {
+                bloquearAccesoAdmin();
+                return;
+            }
             allStatsData = await resStats.json();
             renderStatsTable(allStatsData);
             updateSummaryKPIs(allStatsData);
 
             // Load active viewers live count
-            const resActive = await fetch(`${BASE_PROXY}/api/stats/active`);
+            const resActive = await Utilidades.peticionAutenticada(`${BASE_PROXY}/api/stats/active`);
             const activeData = await resActive.json();
             const activeCount = activeData.active_count || 0;
             const activeUsers = activeData.active_users || [];
@@ -376,7 +433,7 @@ document.addEventListener('DOMContentLoaded', () => {
             kpiLiveUsers.textContent = activeUsers.length > 0 ? `Viendo: ${activeUsers.join(', ')}` : 'Ningún usuario reproduciendo';
 
             // Load timeline data for chart
-            const resTimeline = await fetch(`${BASE_PROXY}/api/admin/timeline`);
+            const resTimeline = await Utilidades.peticionAutenticada(`${BASE_PROXY}/api/admin/timeline`);
             const timelineData = await resTimeline.json();
             renderTimelineChart(timelineData, activeData);
 

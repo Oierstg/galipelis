@@ -11,7 +11,8 @@
     let hlsInstancia = null;
     let mpegtsInstancia = null;
     let temporizadorOsd = null;
-    let usuarioActual = localStorage.getItem('gali_user') || 'admin';
+    let intervaloHeartbeat = null;
+    let sessionId = 'sess_' + Math.random().toString(36).substring(2, 11) + '_' + Date.now();
     let canalActual = null;
     let esVod = false;
 
@@ -59,8 +60,14 @@
         btnMute.addEventListener('click', alternarSilencio);
         btnFullscreen.addEventListener('click', alternarPantallaCompleta);
 
-        videoEl.addEventListener('play', () => actualizarIconoPlayPausa(true));
-        videoEl.addEventListener('pause', () => actualizarIconoPlayPausa(false));
+        videoEl.addEventListener('play', () => {
+            actualizarIconoPlayPausa(true);
+            iniciarHeartbeat();
+        });
+        videoEl.addEventListener('pause', () => {
+            actualizarIconoPlayPausa(false);
+            enviarHeartbeat('pause');
+        });
         videoEl.addEventListener('waiting', () => anilloProgreso.classList.remove('oculto'));
         videoEl.addEventListener('playing', () => anilloProgreso.classList.add('oculto'));
         videoEl.addEventListener('timeupdate', actualizarTiempo);
@@ -78,6 +85,11 @@
 
     function iniciarDesdeParametros() {
         const params = new URLSearchParams(window.location.search);
+        const tokenUrl = params.get('token');
+        if (tokenUrl && typeof Utilidades !== 'undefined') {
+            Utilidades.guardarToken(tokenUrl);
+        }
+
         const rawUrl = params.get('url');
         const nombre = params.get('nombre') || 'Emisión en directo';
         const grupo = params.get('grupo') || 'GaliPTV';
@@ -111,6 +123,10 @@
             finalUrl = `${BASE_PROXY}/${esVod ? 'remux_url' : 'transcode_ts_url'}/${encodeURIComponent(finalUrl)}`;
         }
 
+        if (typeof Utilidades !== 'undefined' && Utilidades.adjuntarTokenAUrl) {
+            finalUrl = Utilidades.adjuntarTokenAUrl(finalUrl);
+        }
+
         detener();
 
         if (esVod) {
@@ -137,9 +153,47 @@
             videoEl.src = finalUrl;
             videoEl.play().catch(() => {});
         }
+
+        iniciarHeartbeat();
+    }
+
+    function iniciarHeartbeat() {
+        detenerHeartbeat();
+        enviarHeartbeat('heartbeat');
+        intervaloHeartbeat = setInterval(() => {
+            if (videoEl && !videoEl.paused) {
+                enviarHeartbeat('heartbeat');
+            }
+        }, 15000);
+    }
+
+    function detenerHeartbeat() {
+        if (intervaloHeartbeat) {
+            clearInterval(intervaloHeartbeat);
+            intervaloHeartbeat = null;
+        }
+    }
+
+    async function enviarHeartbeat(accion = 'heartbeat') {
+        if (!canalActual || typeof Utilidades === 'undefined') return;
+        try {
+            await Utilidades.peticionAutenticada(`${BASE_PROXY}/api/stats/heartbeat`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    session_id: sessionId,
+                    item_id: String(canalActual.id || canalActual.name),
+                    title: canalActual.name || 'Emisión',
+                    type: canalActual.category || (esVod ? 'vod' : 'canal'),
+                    action: accion
+                })
+            });
+        } catch (e) {}
     }
 
     function detener() {
+        detenerHeartbeat();
+        enviarHeartbeat('stop');
         if (hlsInstancia) {
             hlsInstancia.destroy();
             hlsInstancia = null;
@@ -233,24 +287,25 @@
     }
 
     async function volverAlCatalogo() {
+        detenerHeartbeat();
+        enviarHeartbeat('stop');
+
         if (canalActual && esVod && videoEl.duration) {
             try {
                 const cur = Math.floor(videoEl.currentTime);
                 const dur = Math.floor(videoEl.duration);
                 const id = String(canalActual.id || canalActual.name);
 
-                await fetch(`${BASE_PROXY}/api/user/data`, {
+                await Utilidades.peticionAutenticada(`${BASE_PROXY}/api/user/progress`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        username: usuarioActual,
+                        item_id: id,
                         progress: {
-                            [id]: {
-                                currentTime: cur,
-                                duration: dur,
-                                percentage: Math.min(100, Math.floor((cur / dur) * 100)),
-                                completed: cur >= (dur * 0.9)
-                            }
+                            currentTime: cur,
+                            duration: dur,
+                            percentage: Math.min(100, Math.floor((cur / dur) * 100)),
+                            completed: cur >= (dur * 0.9)
                         }
                     })
                 });

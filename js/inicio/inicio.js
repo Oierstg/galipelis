@@ -137,29 +137,29 @@
         });
     }
 
-    /* ── Autenticación de Usuario ── */
+    /* ── Autenticación de Usuario basada en Tokens Backend ── */
     async function verificarSesionUsuario() {
-        const u = localStorage.getItem('gali_user');
-        const p = localStorage.getItem('gali_pass');
+        const token = Utilidades.obtenerToken();
 
-        if (u && p) {
+        if (token) {
             try {
-                const res = await fetch(`${BASE_PROXY}/api/login`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username: u, password: p })
-                });
-                const datos = await res.json();
-                if (datos.success) {
-                    usuarioActual = datos.username;
-                    usuarioEsAdmin = datos.is_admin || false;
-                    alAutenticarUsuario();
-                    return;
+                const res = await Utilidades.peticionAutenticada(`${BASE_PROXY}/api/auth/me`);
+                if (res.ok) {
+                    const datos = await res.json();
+                    if (datos.authenticated && datos.username) {
+                        usuarioActual = datos.username;
+                        usuarioEsAdmin = Boolean(datos.is_admin);
+                        alAutenticarUsuario();
+                        return;
+                    }
                 }
             } catch (err) {
-                console.warn('[GaliPTV] Error comprobando sesión:', err);
+                console.warn('[GaliPTV] Error validando sesión en backend:', err);
             }
         }
+
+        // Si el token es inválido o no existe, limpiar y requerir inicio de sesión
+        Utilidades.eliminarToken();
         modalLogin.classList.remove('oculto');
         campoUsuario.focus();
     }
@@ -170,6 +170,12 @@
         const u = campoUsuario.value.trim();
         const p = campoClave.value.trim();
 
+        if (!u || !p) {
+            alertaErrorLogin.textContent = 'Introduce usuario y contraseña';
+            alertaErrorLogin.classList.remove('oculto');
+            return;
+        }
+
         try {
             const res = await fetch(`${BASE_PROXY}/api/login`, {
                 method: 'POST',
@@ -177,12 +183,12 @@
                 body: JSON.stringify({ username: u, password: p })
             });
             const datos = await res.json();
-            if (datos.success) {
+            if (res.ok && datos.success && datos.token) {
+                Utilidades.guardarToken(datos.token);
                 usuarioActual = datos.username;
-                usuarioEsAdmin = datos.is_admin || false;
-                localStorage.setItem('gali_user', u);
-                localStorage.setItem('gali_pass', p);
+                usuarioEsAdmin = Boolean(datos.is_admin);
                 modalLogin.classList.add('oculto');
+                campoClave.value = '';
                 alAutenticarUsuario();
             } else {
                 alertaErrorLogin.textContent = datos.error || 'Credenciales incorrectas';
@@ -200,6 +206,8 @@
 
         if (usuarioEsAdmin) {
             enlaceAdmin.classList.remove('oculto');
+        } else {
+            enlaceAdmin.classList.add('oculto');
         }
 
         cargarDatosUsuario();
@@ -207,27 +215,40 @@
         cargarListaCanales();
     }
 
-    function cerrarSesion() {
-        localStorage.removeItem('gali_user');
-        localStorage.removeItem('gali_pass');
+    async function cerrarSesion() {
+        try {
+            await Utilidades.peticionAutenticada(`${BASE_PROXY}/api/logout`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+        } catch (e) {}
+        Utilidades.eliminarToken();
+        sessionStorage.removeItem('gali_m3u_cache');
         window.location.reload();
     }
 
     async function cargarDatosUsuario() {
         if (!usuarioActual) return;
         try {
-            const res = await fetch(`${BASE_PROXY}/api/user/data?username=${encodeURIComponent(usuarioActual)}`);
+            const res = await Utilidades.peticionAutenticada(`${BASE_PROXY}/api/user/data`);
+            if (res.status === 401) {
+                cerrarSesion();
+                return;
+            }
             if (res.ok) {
                 const datos = await res.json();
                 favoritosUsuario = datos.favorites || [];
                 progresoUsuario = datos.progress || {};
             }
-        } catch (err) {}
+        } catch (err) {
+            console.warn('[GaliPTV] Error al cargar datos de usuario:', err);
+        }
     }
 
     function iniciarContadorEmisiones() {
         try {
-            const evtSource = new EventSource(`${BASE_PROXY}/api/stats/events`);
+            const urlEventos = Utilidades.adjuntarTokenAUrl(`${BASE_PROXY}/api/stats/events`);
+            const evtSource = new EventSource(urlEventos);
             evtSource.onmessage = (e) => {
                 try {
                     const d = JSON.parse(e.data);
@@ -254,7 +275,11 @@
         let textoM3U = sessionStorage.getItem('gali_m3u_cache');
         if (!textoM3U) {
             try {
-                const res = await fetch(`${BASE_PROXY}/playlist.m3u`);
+                const res = await Utilidades.peticionAutenticada(`${BASE_PROXY}/playlist.m3u`);
+                if (res.status === 401) {
+                    cerrarSesion();
+                    return;
+                }
                 if (!res.ok) throw new Error(`HTTP ${res.status}`);
                 textoM3U = await res.text();
                 try { sessionStorage.setItem('gali_m3u_cache', textoM3U); } catch (e) {}
@@ -817,14 +842,18 @@
 
     /* ── Navegación al Reproductor Independiente ── */
     function abrirReproductor(item) {
-        const urlParams = new URLSearchParams({
+        const token = Utilidades.obtenerToken();
+        const paramsObj = {
             url: item.url || '',
             nombre: item.name || '',
             grupo: item.group || 'GaliPTV',
             tipo: item.category || categoriaActual,
             id: String(item.id || item.name)
-        });
-
+        };
+        if (token) {
+            paramsObj.token = token;
+        }
+        const urlParams = new URLSearchParams(paramsObj);
         window.location.href = `../reproductor/reproductor.html?${urlParams.toString()}`;
     }
 
