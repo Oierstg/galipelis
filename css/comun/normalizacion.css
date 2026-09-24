@@ -1,0 +1,124 @@
+/* ==========================================================================
+   Normalización y Reglas Base — Accesibilidad y Control Remoto TV
+   Directrices: /home/oierst/.gemini/GEMINI.md
+   ========================================================================== */
+
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    -webkit-tap-highlight-color: transparent;
+}
+
+html {
+    font-size: 16px;
+    height: 100%;
+    width: 100%;
+    background-color: var(--color-fondo-principal);
+    color: var(--color-texto-principal);
+    font-family: var(--fuente-principal);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow: hidden;
+}
+
+body {
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    background-color: var(--color-fondo-principal);
+    color: var(--color-texto-principal);
+    font-family: var(--fuente-principal);
+    font-weight: var(--peso-regular);
+    line-height: 1.5;
+    overflow: hidden;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+/* Enlaces y Botones Neutros */
+a {
+    color: inherit;
+    text-decoration: none;
+}
+
+button {
+    font-family: inherit;
+    font-size: inherit;
+    line-height: inherit;
+    color: inherit;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    outline: none;
+}
+
+input, select, textarea {
+    font-family: inherit;
+    font-size: inherit;
+    color: inherit;
+    background: transparent;
+    border: none;
+    outline: none;
+}
+
+img, svg, video {
+    display: block;
+    max-width: 100%;
+}
+
+/* Indicadores de Foco Nítidos exclusivos para Mando a Distancia (D-Pad) y Teclado */
+:focus {
+    outline: none;
+}
+
+body.modo-mando :focus-visible,
+body.modo-mando .foco-activo {
+    outline: 2px solid var(--color-borde-foco) !important;
+    outline-offset: 2px !important;
+    box-shadow: var(--sombra-foco) !important;
+    z-index: 20;
+}
+
+body:not(.modo-mando) :focus {
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+body:not(.modo-mando) input:focus,
+body:not(.modo-mando) textarea:focus,
+body:not(.modo-mando) select:focus {
+    outline: none !important;
+    border-color: var(--color-borde-foco) !important;
+    box-shadow: 0 0 0 1px var(--color-borde-foco) !important;
+}
+
+/* Utilidades Comunes y Accesibilidad */
+.oculto {
+    display: none !important;
+}
+
+.visualmente-oculto {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    padding: 0 !important;
+    margin: -1px !important;
+    overflow: hidden !important;
+    clip: rect(0, 0, 0, 0) !important;
+    white-space: nowrap !important;
+    border: 0 !important;
+}
+
+/* Scroll Limpio para Pantallas de Televisión */
+.sin-barra-desplazamiento {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.sin-barra-desplazamiento::-webkit-scrollbar {
+    display: none;
+    width: 0;
+    height: 0;
+}

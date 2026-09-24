@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Reproductor — GaliPTV</title>
+    <meta name="description" content="Reproductor de vídeo a pantalla completa optimizado para Smart TV.">
+    <link rel="icon" type="image/png" href="../../LogoGaliIptv.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../../css/comun/variables.css">
+    <link rel="stylesheet" href="../../css/comun/normalizacion.css">
+    <link rel="stylesheet" href="../../css/reproductor/reproductor.css">
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@1" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/mpegts.js@1.7.3/dist/mpegts.min.js" defer></script>
+    <script src="../../js/comun/utilidades.js" defer></script>
+    <script src="../../js/comun/navegacion-mando.js" defer></script>
+    <script src="../../js/reproductor/reproductor.js" defer></script>
+</head>
+<body>
+    <div class="contenedor-reproductor" id="contenedor-reproductor">
+        <video id="elemento-video" class="elemento-video" preload="auto" playsinline></video>
+
+        <!-- Capa OSD de Controles para Mando a Distancia -->
+        <div class="capa-interfaz-reproductor" id="capa-interfaz-reproductor">
+            <!-- Barra Superior -->
+            <header class="barra-superior-reproductor">
+                <button type="button" class="boton-volver-reproductor" id="boton-volver" aria-label="Volver al catálogo" tabindex="0">
+                    <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <polyline points="15 18 9 12 15 6"></polyline>
+                    </svg>
+                </button>
+                <div class="columna-titulos-reproductor">
+                    <h1 id="titulo-reproductor" class="titulo-reproductor">Cargando emisión...</h1>
+                    <span id="subtitulo-reproductor" class="subtitulo-reproductor">En directo</span>
+                </div>
+            </header>
+
+            <!-- Centro: Avisos de salto y carga -->
+            <div class="centro-reproductor" id="centro-reproductor">
+                <div class="anillo-progreso-reproductor oculto" id="anillo-progreso-reproductor" aria-hidden="true"></div>
+                <div class="aviso-salto-temporal oculto" id="aviso-salto-temporal"></div>
+            </div>
+
+            <!-- Barra Inferior de Control -->
+            <footer class="barra-inferior-reproductor" id="barra-inferior-reproductor">
+                <!-- Línea de tiempo para VoD -->
+                <div class="fila-linea-tiempo oculto" id="fila-linea-tiempo">
+                    <span class="tiempo-reproduccion" id="tiempo-actual">00:00</span>
+                    <div class="riel-linea-tiempo" id="riel-linea-tiempo">
+                        <div class="relleno-linea-tiempo" id="relleno-linea-tiempo"></div>
+                        <div class="puntero-linea-tiempo" id="puntero-linea-tiempo"></div>
+                    </div>
+                    <span class="tiempo-reproduccion" id="tiempo-total">00:00</span>
+                </div>
+
+                <!-- Botones de Control -->
+                <div class="fila-botones-control">
+                    <div class="grupo-control-izq">
+                        <button type="button" class="boton-control" id="boton-reproducir-pausar" aria-label="Reproducir o pausar" tabindex="0">
+                            <svg class="icono-reproducir" viewBox="0 0 24 24" width="22" height="22" fill="currentColor" stroke="none" aria-hidden="true">
+                                <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                            </svg>
+                            <svg class="icono-pausar oculto" viewBox="0 0 24 24" width="22" height="22" fill="currentColor" stroke="none" aria-hidden="true">
+                                <rect x="6" y="4" width="4" height="16"></rect>
+                                <rect x="14" y="4" width="4" height="16"></rect>
+                            </svg>
+                        </button>
+
+                        <button type="button" class="boton-control" id="boton-retroceder-10s" aria-label="Retroceder 10 segundos" tabindex="0">
+                            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <polyline points="11 17 6 12 11 7"></polyline>
+                                <polyline points="18 17 13 12 18 7"></polyline>
+                            </svg>
+                        </button>
+
+                        <button type="button" class="boton-control" id="boton-avanzar-10s" aria-label="Avanzar 10 segundos" tabindex="0">
+                            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <polyline points="13 17 18 12 13 7"></polyline>
+                                <polyline points="6 17 11 12 6 7"></polyline>
+                            </svg>
+                        </button>
+
+                        <button type="button" class="boton-control" id="boton-silenciar" aria-label="Silenciar sonido" tabindex="0">
+                            <svg class="icono-sonido" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                                <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                            </svg>
+                            <svg class="icono-silencio oculto" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                                <line x1="23" y1="9" x2="17" y2="15"></line>
+                                <line x1="17" y1="9" x2="23" y2="15"></line>
+                            </svg>
+                        </button>
+                    </div>
+
+                    <div class="grupo-control-der">
+                        <div class="contenedor-menu-desplegable">
+                            <button type="button" class="boton-control oculto" id="boton-audio" aria-label="Pista de audio" tabindex="0">
+                                <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <path d="M9 18V5l12-2v13"></path>
+                                    <circle cx="6" cy="18" r="3"></circle>
+                                    <circle cx="18" cy="16" r="3"></circle>
+                                </svg>
+                            </button>
+                            <div class="menu-desplegable oculto" id="menu-audio"></div>
+                        </div>
+
+                        <div class="contenedor-menu-desplegable">
+                            <button type="button" class="boton-control oculto" id="boton-subtitulos" aria-label="Subtítulos" tabindex="0">
+                                <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <rect x="3" y="5" width="18" height="14" rx="2" ry="2"></rect>
+                                    <line x1="7" y1="15" x2="7" y2="15"></line>
+                                    <line x1="11" y1="15" x2="17" y2="15"></line>
+                                    <line x1="7" y1="10" x2="11" y2="10"></line>
+                                    <line x1="15" y1="10" x2="17" y2="10"></line>
+                                </svg>
+                            </button>
+                            <div class="menu-desplegable oculto" id="menu-subtitulos"></div>
+                        </div>
+
+                        <button type="button" class="boton-control" id="boton-pantalla-completa" aria-label="Pantalla completa" tabindex="0">
+                            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </footer>
+        </div>
+    </div>
+</body>
+</html>

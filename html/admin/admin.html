@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GaliPTV — Panel de Administración</title>
+    <link rel="icon" type="image/png" href="../../LogoGaliIptv.png">
+    <link rel="stylesheet" href="../../css/comun/variables.css">
+    <link rel="stylesheet" href="../../css/comun/normalizacion.css">
+    <link rel="stylesheet" href="../../css/admin/admin.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <!-- Chart.js for real-time and historical time-series interactive chart -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="../../js/comun/utilidades.js" defer></script>
+    <script src="../../js/admin/admin.js" defer></script>
+</head>
+<body>
+    <div id="admin-app">
+
+        <!-- Login Screen for Admin -->
+        <div id="admin-login-modal" class="modal-overlay">
+            <div class="login-card">
+                <div class="login-header">
+                    <img src="../../LogoGaliIptv.png" alt="GaliPTV Logo" class="login-logo">
+                    <h2>Panel de Administración</h2>
+                    <p>Inicie sesión con su cuenta de administrador</p>
+                </div>
+                <form id="admin-login-form">
+                    <div class="input-group">
+                        <label for="admin-user">Usuario</label>
+                        <input type="text" id="admin-user" placeholder="Ej. admin" required autocomplete="username">
+                    </div>
+                    <div class="input-group">
+                        <label for="admin-pass">Contraseña</label>
+                        <input type="password" id="admin-pass" placeholder="••••••••" required autocomplete="current-password">
+                    </div>
+                    <div id="login-error" class="alert-error hidden"></div>
+                    <button type="submit" class="btn-primary">Acceder al Panel</button>
+                </form>
+                <div class="login-footer">
+                    <a href="../inicio/inicio.html" class="link-back">← Volver a la web principal</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Admin Dashboard View -->
+        <div id="admin-dashboard" class="dashboard-wrap hidden">
+
+            <!-- Top Admin Header -->
+            <header class="admin-header">
+                <div class="admin-logo-area">
+                    <img src="../../LogoGaliIptv.png" alt="GaliPTV Logo" class="admin-logo">
+                    <div class="admin-title">
+                        <h1>GaliPTV Admin</h1>
+                        <span class="badge-admin">Panel de Control</span>
+                    </div>
+                </div>
+
+                <div class="admin-user-area">
+                    <span id="current-admin-name">Admin</span>
+                    <a href="../inicio/inicio.html" class="btn-subtle" title="Ir a la web de televisión">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"></rect><polyline points="17 2 12 7 7 2"></polyline></svg>
+                        <span>Web Principal</span>
+                    </a>
+                    <button id="admin-logout-btn" class="btn-danger-outline">Cerrar Sesión</button>
+                </div>
+            </header>
+
+            <!-- Navigation Tabs -->
+            <nav class="admin-tabs">
+                <button class="tab-btn active" data-tab="stats">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+                    <span>Estadísticas de Visualización</span>
+                </button>
+                <button class="tab-btn" data-tab="users">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                    <span>Gestión de Usuarios</span>
+                </button>
+            </nav>
+
+            <!-- Content Area -->
+            <main class="admin-content">
+
+                <!-- TAB 1: STATISTICS (MAIN SCREEN DEFAULT) -->
+                <section id="tab-stats" class="tab-content active">
+                    <div class="content-header">
+                        <div>
+                            <h2>Estadísticas de Visualización en Tiempo Real</h2>
+                            <p>Evolución histórica de usuarios conectados simultáneamente y tiempo de reproducción acumulado.</p>
+                        </div>
+                        <button id="refresh-stats-btn" class="btn-secondary">
+                            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M23 4v6h-6"></path><path d="M1 20v-6h6"></path><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+                            <span>Actualizar Datos</span>
+                        </button>
+                    </div>
+
+                    <!-- KPI Metric Cards -->
+                    <div class="kpi-grid">
+                        <div class="card kpi-card">
+                            <div class="kpi-icon icon-green">
+                                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                            </div>
+                            <div class="kpi-info">
+                                <span class="kpi-label">Espectadores en Vivo Ahora</span>
+                                <h3 class="kpi-value" id="kpi-live-count">0</h3>
+                                <span class="kpi-sub" id="kpi-live-users">Ningún usuario reproduciendo</span>
+                            </div>
+                        </div>
+
+                        <div class="card kpi-card">
+                            <div class="kpi-icon icon-blue">
+                                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                            </div>
+                            <div class="kpi-info">
+                                <span class="kpi-label">Tiempo Total de Reproducción</span>
+                                <h3 class="kpi-value" id="kpi-total-time">0h 0m</h3>
+                                <span class="kpi-sub">Acumulado entre todos los usuarios</span>
+                            </div>
+                        </div>
+
+                        <div class="card kpi-card">
+                            <div class="kpi-icon icon-red">
+                                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                            </div>
+                            <div class="kpi-info">
+                                <span class="kpi-label">Total Sesiones de Visualización</span>
+                                <h3 class="kpi-value" id="kpi-total-sessions">0</h3>
+                                <span class="kpi-sub">Registradas en la base de datos</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Interactive Time-Series Timeline Chart -->
+                    <div class="card style-top-gap chart-card">
+                        <div class="chart-header">
+                            <div>
+                                <h3>Historial de Espectadores Simultáneos en el Tiempo</h3>
+                                <p class="chart-sub">Desplázate a la izquierda o derecha para explorar en detalle cada momento desde el principio.</p>
+                            </div>
+                            <div class="chart-controls">
+                                <button id="btn-chart-pan-left" class="btn-icon" title="Desplazar a la izquierda">
+                                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                                    <span>Anterior</span>
+                                </button>
+                                <button id="btn-chart-zoom-in" class="btn-icon" title="Acercar zoom">Acercar</button>
+                                <button id="btn-chart-zoom-out" class="btn-icon" title="Alejar zoom">Alejar</button>
+                                <button id="btn-chart-pan-right" class="btn-icon" title="Desplazar a la derecha">
+                                    <span>Siguiente</span>
+                                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                                </button>
+                                <button id="btn-chart-reset" class="btn-icon-subtle" title="Ver todo">Restablecer</button>
+                            </div>
+                        </div>
+
+                        <div class="chart-scroll-box" id="chart-scroll-box">
+                            <div class="chart-inner-wrap" id="chart-inner-wrap">
+                                <canvas id="viewersChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Detailed Viewing History Log Table -->
+                    <div class="card card-table style-top-gap">
+                        <h3>Historial Completo de Contenidos Vistos</h3>
+                        <div class="filter-controls">
+                            <input type="text" id="stats-search" placeholder="Filtrar por usuario, título o categoría..." class="input-filter">
+                        </div>
+                        <div class="table-container">
+                            <table class="admin-table">
+                                <thead>
+                                    <tr>
+                                        <th>Usuario</th>
+                                        <th>Contenido Visto</th>
+                                        <th>Tipo</th>
+                                        <th>Fecha / Hora Inicio</th>
+                                        <th>Última Actividad / Fin</th>
+                                        <th>Tiempo Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="stats-table-body">
+                                    <!-- Injected by JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- TAB 2: USERS MANAGEMENT & PASSWORDS -->
+                <section id="tab-users" class="tab-content">
+                    <div class="content-header">
+                        <div>
+                            <h2>Gestión de Usuarios y Accesos</h2>
+                            <p>Crea usuarios, consulta y modifica sus contraseñas en cualquier momento o examina su detalle personal.</p>
+                        </div>
+                    </div>
+
+                    <div class="admin-grid-layout">
+                        <!-- Create User Form -->
+                        <div class="card card-form">
+                            <h3>Crear Nuevo Usuario</h3>
+                            <form id="create-user-form">
+                                <div class="input-group">
+                                    <label for="new-username">Nombre de Usuario</label>
+                                    <input type="text" id="new-username" placeholder="Nombre de usuario" required autocomplete="off">
+                                </div>
+                                <div class="input-group">
+                                    <label for="new-password">Contraseña</label>
+                                    <input type="text" id="new-password" placeholder="Contraseña de acceso" required autocomplete="off">
+                                </div>
+                                <div class="checkbox-group">
+                                    <label>
+                                        <input type="checkbox" id="new-is-admin"> Es Administrador
+                                    </label>
+                                </div>
+                                <div id="create-user-msg" class="alert-msg hidden"></div>
+                                <button type="submit" class="btn-primary">Guardar Usuario</button>
+                            </form>
+                        </div>
+
+                        <!-- Users Table -->
+                        <div class="card card-table">
+                            <h3>Lista de Usuarios Registrados</h3>
+                            <div class="table-container">
+                                <table class="admin-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Usuario</th>
+                                            <th>Contraseña</th>
+                                            <th>Rol</th>
+                                            <th>Fecha Creación</th>
+                                            <th>Acciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="users-table-body">
+                                        <!-- Injected by JS -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+            </main>
+        </div>
+
+        <!-- User Detail Inspector Modal -->
+        <div id="user-detail-modal" class="modal-overlay hidden">
+            <div class="detail-card">
+                <button class="modal-close-btn" id="close-user-detail-btn">&times;</button>
+                <div class="detail-user-header">
+                    <div class="user-big-avatar" id="detail-user-avatar">U</div>
+                    <div class="detail-user-info">
+                        <h2 id="detail-user-name">Usuario</h2>
+                        <div class="detail-meta">
+                            <span class="role-badge" id="detail-user-role">Usuario</span>
+                            <span class="detail-created" id="detail-user-created">Creado: —</span>
+                            <span class="detail-time-badge" id="detail-user-time">Total visto: 0s</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="detail-tabs">
+                    <button class="detail-tab-btn active" data-detail-tab="favorites">
+                        Favoritos (<span id="detail-fav-count">0</span>)
+                    </button>
+                    <button class="detail-tab-btn" data-detail-tab="history">
+                        Historial Visto (<span id="detail-history-count">0</span>)
+                    </button>
+                </div>
+
+                <div class="detail-tab-body">
+                    <!-- Favorites Tab -->
+                    <div id="detail-tab-favorites" class="detail-section active">
+                        <div id="detail-favorites-list" class="fav-grid">
+                            <!-- Injected by JS -->
+                        </div>
+                    </div>
+
+                    <!-- History Tab -->
+                    <div id="detail-tab-history" class="detail-section">
+                        <div class="table-container">
+                            <table class="admin-table">
+                                <thead>
+                                    <tr>
+                                        <th>Contenido</th>
+                                        <th>Tipo</th>
+                                        <th>Fecha / Hora Inicio</th>
+                                        <th>Fin / Última Actividad</th>
+                                        <th>Duración</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="detail-history-body">
+                                    <!-- Injected by JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</body>
+</html>

@@ -1,0 +1,259 @@
+/* ==========================================================================
+   Estilos del Reproductor a Pantalla Completa (reproductor.css) — Smart TV
+   Directrices: /home/oierst/.gemini/GEMINI.md
+   ========================================================================== */
+
+.contenedor-reproductor {
+    width: 100vw;
+    height: 100vh;
+    background-color: #000000;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.elemento-video {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    background-color: #000000;
+}
+
+/* ── Capa OSD de Controles ── */
+.capa-interfaz-reproductor {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: var(--espacio-32);
+    background: linear-gradient(180deg, rgba(0, 0, 0, 0.75) 0%, transparent 20%, transparent 80%, rgba(0, 0, 0, 0.85) 100%);
+    opacity: 1;
+    transition: opacity 0.3s ease;
+    pointer-events: auto;
+}
+
+.capa-interfaz-reproductor.inactiva {
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* Barra Superior */
+.barra-superior-reproductor {
+    display: flex;
+    align-items: center;
+    gap: var(--espacio-16);
+}
+
+.boton-volver-reproductor {
+    width: 44px;
+    height: 44px;
+    border-radius: var(--radio-completo);
+    background-color: rgba(24, 27, 34, 0.8);
+    border: 1px solid var(--color-borde);
+    color: var(--color-texto-principal);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--transicion-base);
+}
+
+.boton-volver-reproductor:hover {
+    background-color: var(--color-acento);
+}
+
+body.modo-mando .boton-volver-reproductor:focus-visible,
+body.modo-mando .boton-volver-reproductor.foco-activo {
+    background-color: var(--color-acento);
+    border-color: var(--color-borde-foco);
+    box-shadow: var(--sombra-foco);
+}
+
+.columna-titulos-reproductor {
+    display: flex;
+    flex-direction: column;
+}
+
+.titulo-reproductor {
+    font-size: 18px;
+    font-weight: var(--peso-seminegrita);
+    color: var(--color-texto-principal);
+}
+
+.subtitulo-reproductor {
+    font-size: 13px;
+    color: var(--color-texto-atenuado);
+}
+
+/* Centro: Carga y Avisos */
+.centro-reproductor {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.anillo-progreso-reproductor {
+    width: 52px;
+    height: 52px;
+    border: 4px solid rgba(255, 255, 255, 0.2);
+    border-top-color: var(--color-borde-foco);
+    border-radius: var(--radio-completo);
+    animation: giro 0.8s linear infinite;
+}
+
+@keyframes giro {
+    to { transform: rotate(360deg); }
+}
+
+.aviso-salto-temporal {
+    background-color: rgba(9, 9, 11, 0.9);
+    border: 1px solid var(--color-borde);
+    padding: var(--espacio-12) var(--espacio-24);
+    border-radius: var(--radio-md);
+    font-size: 18px;
+    font-weight: var(--peso-seminegrita);
+    color: var(--color-texto-principal);
+}
+
+/* Barra Inferior */
+.barra-inferior-reproductor {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacio-16);
+    background-color: rgba(18, 20, 26, 0.85);
+    border: 1px solid var(--color-borde);
+    border-radius: var(--radio-md);
+    padding: var(--espacio-16);
+    backdrop-filter: blur(8px);
+}
+
+.fila-linea-tiempo {
+    display: flex;
+    align-items: center;
+    gap: var(--espacio-16);
+}
+
+.tiempo-reproduccion {
+    font-size: 13px;
+    font-weight: var(--peso-medio);
+    color: var(--color-texto-secundario);
+    min-width: 48px;
+}
+
+.riel-linea-tiempo {
+    flex-grow: 1;
+    height: 6px;
+    background-color: var(--color-fondo-superficie);
+    border-radius: var(--radio-completo);
+    position: relative;
+    cursor: pointer;
+}
+
+.relleno-linea-tiempo {
+    position: absolute;
+    height: 100%;
+    width: 0%;
+    background-color: var(--color-acento);
+    border-radius: var(--radio-completo);
+}
+
+.puntero-linea-tiempo {
+    position: absolute;
+    top: 50%;
+    left: 0%;
+    width: 14px;
+    height: 14px;
+    background-color: #ffffff;
+    border-radius: var(--radio-completo);
+    transform: translate(-50%, -50%);
+    box-shadow: 0 0 4px rgba(0, 0, 0, 0.5);
+}
+
+.fila-botones-control {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.grupo-control-izq,
+.grupo-control-der {
+    display: flex;
+    align-items: center;
+    gap: var(--espacio-12);
+}
+
+.boton-control {
+    width: 42px;
+    height: 42px;
+    border-radius: var(--radio-md);
+    background-color: var(--color-fondo-elevado);
+    border: 1px solid var(--color-borde);
+    color: var(--color-texto-principal);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--transicion-base);
+}
+
+.boton-control:hover {
+    background-color: var(--color-fondo-superficie);
+}
+
+body.modo-mando .boton-control:focus-visible,
+body.modo-mando .boton-control.foco-activo {
+    background-color: var(--color-fondo-superficie);
+    border-color: var(--color-borde-foco);
+    box-shadow: var(--sombra-foco);
+}
+
+.contenedor-menu-desplegable {
+    position: relative;
+}
+
+.menu-desplegable {
+    position: absolute;
+    bottom: 52px;
+    right: 0;
+    background-color: var(--color-fondo-secundario);
+    border: 1px solid var(--color-borde);
+    border-radius: var(--radio-md);
+    padding: var(--espacio-8);
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacio-4);
+    min-width: 160px;
+    max-height: 240px;
+    overflow-y: auto;
+    box-shadow: var(--sombra-elevada);
+    z-index: 30;
+}
+
+.opcion-pista {
+    padding: var(--espacio-8) var(--espacio-12);
+    font-size: 13px;
+    font-weight: var(--peso-medio);
+    color: var(--color-texto-secundario);
+    border-radius: var(--radio-sm);
+    text-align: left;
+    transition: all var(--transicion-base);
+}
+
+.opcion-pista:hover {
+    background-color: var(--color-fondo-elevado);
+    color: var(--color-texto-principal);
+}
+
+body.modo-mando .opcion-pista:focus-visible,
+body.modo-mando .opcion-pista.foco-activo {
+    background-color: var(--color-fondo-elevado);
+    color: var(--color-texto-principal);
+    box-shadow: var(--sombra-foco);
+}
+
+.opcion-pista.activa {
+    background-color: var(--color-acento-suave);
+    color: var(--color-borde-foco);
+    font-weight: var(--peso-seminegrita);
+}

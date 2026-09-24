@@ -1,0 +1,67 @@
+/* ==========================================================================
+   Variables y Tokens de Diseño — Sistema Enterprise Grade para Smart TV
+   Directrices: /home/oierst/.gemini/GEMINI.md
+   ========================================================================== */
+
+:root {
+    /* Paleta Cromática: Neutros Equilibrados de Alta Precisión */
+    --color-fondo-principal: #09090b;
+    --color-fondo-secundario: #12141a;
+    --color-fondo-elevado: #181b22;
+    --color-fondo-superficie: #20242e;
+
+    /* Bordes Tenues (1px sobrio) */
+    --color-borde: #27272a;
+    --color-borde-suave: #1f222a;
+    --color-borde-foco: #3b82f6;
+
+    /* Color de Acento Único Institucional (Funcional para CTA y foco activo) */
+    --color-acento: #2563eb;
+    --color-acento-hover: #1d4ed8;
+    --color-acento-suave: rgba(37, 99, 235, 0.15);
+
+    /* Estados de Éxito / Alerta Sobrios */
+    --color-exito: #10b981;
+    --color-peligro: #ef4444;
+
+    /* Escala Tipográfica y Legibilidad */
+    --color-texto-principal: #f4f4f5;
+    --color-texto-secundario: #a1a1aa;
+    --color-texto-atenuado: #71717a;
+
+    /* Tipografía Corporativa */
+    --fuente-principal: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    --peso-regular: 400;
+    --peso-medio: 500;
+    --peso-seminegrita: 600;
+
+    /* Escala de Espaciado Matemático (Múltiplos de 8px y 4px) */
+    --espacio-4: 4px;
+    --espacio-8: 8px;
+    --espacio-12: 12px;
+    --espacio-16: 16px;
+    --espacio-24: 24px;
+    --espacio-32: 32px;
+    --espacio-48: 48px;
+    --espacio-64: 64px;
+
+    /* Radios de Curvatura Sobrios */
+    --radio-sm: 4px;
+    --radio-md: 8px;
+    --radio-lg: 12px;
+    --radio-completo: 9999px;
+
+    /* Dimensiones para TV (10-Foot UI) */
+    --ancho-barra-lateral: 88px;
+    --ancho-barra-lateral-expandida: 240px;
+    --altura-cabecera: 72px;
+
+    /* Transición Rápida y Limpia para Mandos a Distancia */
+    --transicion-base: 150ms cubic-bezier(0.16, 1, 0.3, 1);
+    --transicion-suave: 250ms ease;
+
+    /* Sombras Sutiles de Mínima Profundidad */
+    --sombra-sutil: 0 1px 3px 0 rgba(0, 0, 0, 0.3), 0 1px 2px 0 rgba(0, 0, 0, 0.2);
+    --sombra-elevada: 0 4px 12px 0 rgba(0, 0, 0, 0.45);
+    --sombra-foco: 0 0 0 3px rgba(37, 99, 235, 0.45);
+}
