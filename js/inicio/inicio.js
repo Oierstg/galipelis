@@ -33,7 +33,7 @@
     let botonHeroReproducir, pistaFiltros, contenedorCarruseles, rejillaContenido;
 
     /* Modales */
-    let modalLogin, formLogin, campoUsuario, campoClave, alertaErrorLogin, botonCerrarSesion, enlaceAdmin;
+    let modalLogin, formLogin, campoUsuario, campoClave, alertaErrorLogin, botonCerrarSesion;
     let modalDetalle, btnCerrarDetalle, imgPortadaDetalle, tituloDetalle, ratingDetalle, anoDetalle;
     let duracionDetalle, generoDetalle, valorDirectorDetalle, valorRepartoDetalle, sinopsisDetalle, btnPlayDetalle;
     let modalSeries, btnCerrarSeries, imgPortadaSeries, tituloModalSeries, selectorTemporadas, listaEpisodios;
@@ -71,7 +71,6 @@
         campoClave             = document.getElementById('campo-clave');
         alertaErrorLogin       = document.getElementById('alerta-error-login');
         botonCerrarSesion      = document.getElementById('boton-cerrar-sesion');
-        enlaceAdmin            = document.getElementById('enlace-admin');
 
         modalDetalle           = document.getElementById('modal-detalle-contenido');
         btnCerrarDetalle       = document.getElementById('boton-cerrar-detalle');
@@ -203,12 +202,6 @@
     function alAutenticarUsuario() {
         nombreUsuario.textContent = usuarioActual;
         avatarIniciales.textContent = usuarioActual.charAt(0).toUpperCase();
-
-        if (usuarioEsAdmin) {
-            enlaceAdmin.classList.remove('oculto');
-        } else {
-            enlaceAdmin.classList.add('oculto');
-        }
 
         cargarDatosUsuario();
         iniciarContadorEmisiones();
